@@ -8,6 +8,8 @@ try:
   os.mkdir('tmp')
 except FileExistsError: pass
 
+# pushed
+
 # Fetching data from file
 class_0 = get_data('data/class_1')
 class_1 = get_data('data/class_2')

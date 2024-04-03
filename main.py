@@ -40,5 +40,4 @@ print('Max values:', max_values)
 np.savetxt('tmp/max_values.txt', max_values)
 
 training_data_normalised = training_data / max_values
-print(training_data_normalised)
 np.savetxt('tmp/normalised_training_data.txt', training_data_normalised)

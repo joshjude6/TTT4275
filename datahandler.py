@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def get_data(filename='', header=0) -> pd.DataFrame:
     return pd.read_csv(filename, header=header)
@@ -12,6 +13,24 @@ def drop_entry_columns(data, column_names) -> pd.DataFrame:
     data.columns = data.columns.str.strip()
     data = data.drop(columns=column_names)
     return data
+
+def single_value_zero_matrix(shape, position, dtype=float, value=1):
+    matrix = np.zeros(shape, dtype=dtype)
+    matrix[position] = value
+    return matrix
+
+def sigmoid(x):
+    return np.array(1 / (1 + np.exp(-x)))
+
+def compute_mse_gradient(data, target, activation_function, number_of_features) -> np.ndarray:
+    target_matrix = (activation_function - target) * activation_function * (1 - activation_function)
+    target_matrix = target_matrix.reshape(3, 1)
+    
+    feature_matrix = data
+    feature_matrix = feature_matrix.reshape(number_of_features + 1, 1)
+    
+    gradient = target_matrix @ feature_matrix.T
+    return gradient
 
 if __name__ == '__main__':
     data = get_data('data/iris.data')

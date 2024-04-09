@@ -84,12 +84,12 @@ for _ in range(training_iterations):
   mse = 0
 
   for column in range(number_of_classes * training_samples):
-    row_data = np.array(training_data[column, :])
-    row_data = np.append(row_data, 1)
-    z_k = weight_matrix @ row_data
+    data = np.array(training_data[column, :])
+    data = np.append(data, 1) # concatinate 1x1 matrix to data
+    z_k = weight_matrix @ data
     g_k = sigmoid(z_k)
     t_k = training_target_vectors[column, :]
-    mse_gradient += compute_mse_gradient(row_data, t_k, g_k, number_of_features)
+    mse_gradient += compute_mse_gradient(data, t_k, g_k, number_of_features)
     mse += 0.5 * (g_k - t_k).T @ (g_k - t_k)
 
   mse_values.append(mse)  

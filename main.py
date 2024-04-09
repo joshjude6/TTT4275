@@ -35,6 +35,19 @@ class_0_train, class_0_test = separate_data(class_0, training_samples)
 class_1_train, class_1_test = separate_data(class_1, training_samples)
 class_2_train, class_2_test = separate_data(class_2, training_samples)
 
+# Scatter matrix plot of training data
+if PLOT_DATA:
+  scatter_matrix = pd.plotting.scatter_matrix(class_0_train, figsize=None, alpha=0.8, c='r')
+  pd.plotting.scatter_matrix(class_1_train, alpha=0.8, c='g', ax=scatter_matrix)
+  pd.plotting.scatter_matrix(class_2_train, alpha=0.8, c='b', ax=scatter_matrix)
+  handles = [plt.plot([],[],color=c, ls="", marker=".", \
+                    markersize=np.sqrt(10))[0] for c in ['r', 'g', 'b']]
+  labels=["Class 0", "Class 1", "Class 2"]
+  plt.suptitle('Scatter Matrix of Training Data')
+  plt.legend(handles, labels, loc=(1.02,0))
+  plt.tight_layout()
+  plt.show()
+
 # Merging data sets
 training_data = pd.concat([class_0_train, class_1_train, class_2_train]).values
 test_data = pd.concat([class_0_test, class_1_test, class_2_test]).values

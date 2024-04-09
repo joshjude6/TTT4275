@@ -17,9 +17,11 @@ number_of_features = 4
 removed_feature_columns = [] # SL, SW, PL, PW
 number_of_features -= len(removed_feature_columns)
 
-training_iterations = 1000
-learning_rate = 0.005
+training_iterations = 10_000
+learning_rate = 0.003
+
 PLOT_DATA = False
+PREFER_PERCENTAGES = True
 
 # Fetching data from file
 class_0 = get_data('data/class_1')
@@ -49,9 +51,9 @@ if PLOT_DATA:
   plt.show()
 
 # Merging data sets
+testing_samples = class_0_test.shape[0]
 training_data = pd.concat([class_0_train, class_1_train, class_2_train]).values
 test_data = pd.concat([class_0_test, class_1_test, class_2_test]).values
-testing_samples = test_data.shape[0]
 print('Data, Training:', training_data.shape)
 print('Data, Testing:', test_data.shape)
 
@@ -75,7 +77,7 @@ print('Weight matrix:', weight_matrix.shape)
 
 # Training
 mse_values = []
-print("\nStarting training")
+print("\nTraining started...")
 start_time = time.time()
 
 for _ in range(training_iterations):
@@ -86,9 +88,11 @@ for _ in range(training_iterations):
   for column in range(number_of_classes * training_samples):
     data = np.array(training_data[column, :])
     data = np.append(data, 1) # concatinate 1x1 matrix to data
+
     z_k = weight_matrix @ data
-    g_k = sigmoid(z_k)
-    t_k = training_target_vectors[column, :]
+    g_k = sigmoid(z_k) # squashing value to 0 or 1
+    t_k = training_target_vectors[column, :] # target values
+
     mse_gradient += compute_mse_gradient(data, t_k, g_k, number_of_features)
     mse += 0.5 * (g_k - t_k).T @ (g_k - t_k)
 
@@ -96,16 +100,60 @@ for _ in range(training_iterations):
   weight_matrix = weight_matrix - learning_rate * mse_gradient
 
 end_time = time.time()
-elapsed_time = round(end_time - start_time, 2)
-print("Training time: ", elapsed_time, "s")
-print("Training done\n")
+elapsed_time = end_time - start_time
+print(f"Time elapsed: {elapsed_time:.2f}s")
+print("Training finished!\n")
 
 np.set_printoptions(precision=2, suppress=True)
-print('Weight matrix:', weight_matrix)
+print('Weight matrix:\n', weight_matrix)
 
 if PLOT_DATA:
   plt.plot(mse_values)
-  plt.title(f'MSE v. Interation\nLearning rate: {learning_rate}, Iterations: {training_iterations}, Time: {elapsed_time}s')
+  plt.title(f'MSE v. Interation\nLearning rate: {learning_rate}, Iterations: {training_iterations}, Time: {elapsed_time:.3f}s')
   plt.xlabel('Iteration')
   plt.ylabel('MSE')
   plt.show()
+
+# Confusion matrices. Actual value x predicted value
+confusion_matrix_training = np.zeros((number_of_classes, number_of_classes))
+confusion_matrix_testing = np.zeros((number_of_classes, number_of_classes))
+
+for i in range(number_of_classes * training_samples):
+  data = np.array(training_data[i, :])
+  data = np.append(data, 1) # concatinate 1x1 matrix to data
+  z_k = weight_matrix @ data
+  g_k = sigmoid(z_k) # squashing value to 0 or 1
+  t_k = training_target_vectors[i, :]
+
+  if np.argmax(g_k) == np.argmax(t_k):
+    confusion_matrix_training[np.argmax(t_k), np.argmax(t_k)] += 1 # hit
+  else:
+    confusion_matrix_training[np.argmax(t_k), np.argmax(g_k)] += 1 # miss
+
+for i in range(number_of_classes * testing_samples):
+  data = np.array(test_data[i, :])
+  data = np.append(data, 1) # concatinate 1x1 matrix to data
+  z_k = weight_matrix @ data
+  g_k = sigmoid(z_k) # squashing value to 0 or 1
+  t_k = testing_target_vectors[i, :]
+
+  if np.argmax(g_k) == np.argmax(t_k):
+    confusion_matrix_testing[np.argmax(t_k), np.argmax(t_k)] += 1 # hit
+  else:
+    confusion_matrix_testing[np.argmax(t_k), np.argmax(g_k)] += 1 # miss
+
+print('Confusion matrix, Training:\n', confusion_matrix_training)
+print('Confusion matrix, Testing:\n', confusion_matrix_testing)
+
+hits = np.array([np.trace(matrix) for matrix in [confusion_matrix_training, confusion_matrix_testing]])
+total = np.array([np.sum(matrix) for matrix in [confusion_matrix_training, confusion_matrix_testing]])
+
+accuracy = hits / total
+max_accuracy = 100 ** PREFER_PERCENTAGES # 100% or 1.0
+accuracy *= max_accuracy
+
+print(f'Accuracy, Training: {accuracy[0]:.2f}{'%' * PREFER_PERCENTAGES}')
+print(f'Accuracy, Testing: {accuracy[1]:.2f}{'%' * PREFER_PERCENTAGES}')
+
+print(f'Error rate, Training: {max_accuracy - accuracy[0]:.2f}{'%' * PREFER_PERCENTAGES}')
+print(f'Error rate, Testing: {max_accuracy - accuracy[1]:.2f}{'%' * PREFER_PERCENTAGES}')

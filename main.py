@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import seaborn as sns
 import time
 
 from datahandler import *
@@ -23,7 +24,7 @@ number_of_features -= len(removed_feature_columns)
 training_iterations = 10_000
 learning_rate = 0.003
 
-PLOT_DATA = False
+PLOT_DATA = True
 PREFER_PERCENTAGES = True
 
 # Fetching data from file
@@ -46,10 +47,10 @@ if PLOT_DATA:
   pd.plotting.scatter_matrix(class_1_train, alpha=0.8, c='g', ax=scatter_matrix)
   pd.plotting.scatter_matrix(class_2_train, alpha=0.8, c='b', ax=scatter_matrix)
   handles = [plt.plot([],[],color=c, ls="", marker=".", \
-                    markersize=np.sqrt(10))[0] for c in ['r', 'g', 'b']]
-  labels=["Class 0", "Class 1", "Class 2"]
+              markersize=np.sqrt(10))[0] for c in ['r', 'g', 'b']]
+  axis_labels=["Class 0", "Class 1", "Class 2"]
   plt.suptitle('Scatter Matrix of Training Data')
-  plt.legend(handles, labels, loc=(1.02,0))
+  plt.legend(handles, axis_labels, loc=(1.02,0))
   plt.tight_layout()
   plt.show()
 
@@ -160,3 +161,15 @@ print(f'Accuracy, Testing: {accuracy[1]:.2f}{'%' * PREFER_PERCENTAGES}')
 
 print(f'Error rate, Training: {max_accuracy - accuracy[0]:.2f}{'%' * PREFER_PERCENTAGES}')
 print(f'Error rate, Testing: {max_accuracy - accuracy[1]:.2f}{'%' * PREFER_PERCENTAGES}')
+
+if PLOT_DATA:
+  fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+  axs[0] = sns.heatmap(confusion_matrix_training, xticklabels=axis_labels,
+                    yticklabels=axis_labels, annot=True, ax=axs[0], annot_kws={"size": 16})
+  axs[0].set_title('Training set')
+  axs[1] = sns.heatmap(confusion_matrix_testing, xticklabels=axis_labels,
+                    yticklabels=axis_labels, annot=True, ax=axs[1], annot_kws={"size": 16})
+  axs[1].set_title('Test set')
+  plt.suptitle('Confusion matrices')
+  plt.tight_layout()
+  plt.show()

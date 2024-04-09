@@ -5,9 +5,12 @@ import pandas as pd
 import time
 
 from datahandler import *
+from datetime import datetime
 
 try:
-  os.mkdir('tmp')
+  timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+  temp_path = f'tmp/{timestamp}'
+  os.makedirs(temp_path)
 except FileExistsError: pass
 
 # Constants
@@ -60,10 +63,11 @@ print('Data, Testing:', test_data.shape)
 # Normalising data
 max_values = np.array([training_data[:, i].max() for i in range(number_of_features)])
 print('Max values:', max_values)
-np.savetxt('tmp/max_values.txt', max_values)
+np.savetxt(f'{temp_path}/max_values.txt', max_values)
 
-training_data_normalised = training_data / max_values
-np.savetxt('tmp/normalised_training_data.txt', training_data_normalised)
+# ? Unused normalisation
+# training_data_normalised = training_data / max_values
+# np.savetxt('tmp/normalised_training_data.txt', training_data_normalised)
 
 # Setting up target vectors and weight matrix
 target_vectors = [single_value_zero_matrix(shape=number_of_classes, position=i, value=1) for i in range(number_of_classes)]
@@ -146,9 +150,12 @@ print('Confusion matrix, Training:\n', confusion_matrix_training)
 print('Confusion matrix, Testing:\n', confusion_matrix_testing)
 
 hits = np.array([np.trace(matrix) for matrix in [confusion_matrix_training, confusion_matrix_testing]])
-total = np.array([np.sum(matrix) for matrix in [confusion_matrix_training, confusion_matrix_testing]])
+total_decitions = np.array([np.sum(matrix) for matrix in [confusion_matrix_training, confusion_matrix_testing]])
 
-accuracy = hits / total
+np.savetxt(f'{temp_path}/total_hits.txt', hits)
+np.savetxt(f'{temp_path}/total_decitions.txt', total_decitions)
+
+accuracy = hits / total_decitions
 max_accuracy = 100 ** PREFER_PERCENTAGES # 100% or 1.0
 accuracy *= max_accuracy
 

@@ -65,10 +65,6 @@ max_values = np.array([training_data[:, i].max() for i in range(number_of_featur
 print('Max values:', max_values)
 np.savetxt(f'{temp_path}/max_values.txt', max_values)
 
-# ? Unused normalisation
-# training_data_normalised = training_data / max_values
-# np.savetxt('tmp/normalised_training_data.txt', training_data_normalised)
-
 # Setting up target vectors and weight matrix
 target_vectors = [single_value_zero_matrix(shape=number_of_classes, position=i, value=1) for i in range(number_of_classes)]
 training_target_vectors = np.vstack([np.tile(vec, (training_samples, 1)) for vec in target_vectors])

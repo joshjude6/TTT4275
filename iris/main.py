@@ -7,10 +7,12 @@ import time
 
 from datahandler import *
 from datetime import datetime
+from os import path
 
 try:
+  dirname, filename = path.split(path.abspath(__file__))
   timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-  temp_path = f'tmp/{timestamp}'
+  temp_path = f'{dirname}/tmp/{timestamp}'
   os.makedirs(temp_path)
 except FileExistsError: pass
 
@@ -29,9 +31,9 @@ PREFER_PERCENTAGES = True
 USE_LAST_N_FOR_TRAINING = False
 
 # Fetching data from file
-class_0 = get_data('data/class_1')
-class_1 = get_data('data/class_2')
-class_2 = get_data('data/class_3')
+class_0 = get_data(f'{dirname}/data/class_1')
+class_1 = get_data(f'{dirname}/data/class_2')
+class_2 = get_data(f'{dirname}/data/class_3')
 
 class_0 = drop_entry_columns(class_0, column_names=removed_feature_columns)
 class_1 = drop_entry_columns(class_1, column_names=removed_feature_columns)

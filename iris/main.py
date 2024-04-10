@@ -9,13 +9,6 @@ from datahandler import *
 from datetime import datetime
 from os import path
 
-try:
-  dirname, filename = path.split(path.abspath(__file__))
-  timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-  temp_path = f'{dirname}/tmp/{timestamp}'
-  os.makedirs(temp_path)
-except FileExistsError: pass
-
 # Constants
 training_samples = 30
 number_of_classes = 3
@@ -26,14 +19,52 @@ number_of_features -= len(removed_feature_columns)
 training_iterations = 10_000
 learning_rate = 0.003
 
-PLOT_DATA = True
 PREFER_PERCENTAGES = True
 USE_LAST_N_FOR_TRAINING = False
+PLOT_DATA = True
+SAVE_PLOTS = False
+
+try:
+  dirname, filename = path.split(path.abspath(__file__))
+  timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+  temp_path = f'{dirname}/tmp/{timestamp}'
+  os.makedirs(temp_path)
+
+  dirname_missing_attr = '' if len(removed_feature_columns) == 0 else f' -- without  {'-'.join(removed_feature_columns)}'
+  dirname_ext = f'training {'last' if USE_LAST_N_FOR_TRAINING else 'first'} {training_samples}'
+  plot_path = f'{dirname}/plots/{dirname_ext}{dirname_missing_attr}'
+  os.makedirs(plot_path)
+except FileExistsError: pass
 
 # Fetching data from file
 class_0 = get_data(f'{dirname}/data/class_1')
 class_1 = get_data(f'{dirname}/data/class_2')
 class_2 = get_data(f'{dirname}/data/class_3')
+
+feature_names = class_0.head(0).columns.values
+remaining_features = [item for item in feature_names if item not in removed_feature_columns]
+
+# Plot features
+if PLOT_DATA:
+  for feature in remaining_features:
+    column_index = np.where(feature_names == feature)[0]
+    fig, axs = plt.subplots(3, 1, sharex=True)
+    axs[0] = sns.histplot(class_0.iloc[:, column_index], ax=axs[0], color='r')
+    axs[0].set_ylabel('Antall')
+    axs[0].set_title(f'Class 0')
+    axs[1] = sns.histplot(class_1.iloc[:, column_index], ax=axs[1], color='g')
+    axs[1].set_ylabel('Antall')
+    axs[1].set_title(f'Class 1')
+    axs[2] = sns.histplot(class_2.iloc[:, column_index], ax=axs[2], color='b')
+    axs[2].set_ylabel('Antall')
+    axs[2].set_title(f'Class 2')
+    plt.suptitle(f'Feature {feature}')
+    plt.tight_layout()
+
+    if SAVE_PLOTS:
+      fig = fig.get_figure()
+      plt.savefig(f'{plot_path}/Feature_{feature}.svg')
+
 
 class_0 = drop_entry_columns(class_0, column_names=removed_feature_columns)
 class_1 = drop_entry_columns(class_1, column_names=removed_feature_columns)
@@ -60,6 +91,10 @@ if PLOT_DATA:
   plt.suptitle('Scatter Matrix of Training Data')
   plt.legend(handles, axis_labels, loc=(1.02,0))
   plt.tight_layout()
+
+  if SAVE_PLOTS:
+    plt.savefig(f'{plot_path}/scatter_matrix.svg')
+
   plt.show()
 
 # Merging data sets
@@ -121,6 +156,10 @@ if PLOT_DATA:
   plt.title(f'MSE v. Interation\nLearning rate: {learning_rate}, Iterations: {training_iterations}, Time: {elapsed_time:.3f}s')
   plt.xlabel('Iteration')
   plt.ylabel('MSE')
+
+  if SAVE_PLOTS:
+    plt.savefig(f'{plot_path}/MSE_v_Iteration.svg')
+
   plt.show()
 
 # Confusion matrices. Actual value x predicted value
@@ -180,4 +219,9 @@ if PLOT_DATA:
   axs[1].set_title('Test set')
   plt.suptitle('Confusion matrices')
   plt.tight_layout()
+
+  if SAVE_PLOTS:
+    fig = fig.get_figure() # get figure from seaborn
+    plt.savefig(f'{plot_path}/Confusion_matrix.svg')
+
   plt.show()

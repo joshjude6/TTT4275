@@ -32,6 +32,17 @@ def compute_mse_gradient(data, target, activation_function, number_of_features) 
     gradient = target_matrix @ feature_matrix.T
     return gradient
 
+def shift_last_n_to_beginning(arr, n):
+  if n == 0:
+    return arr.copy()  # No shift needed, return a copy to avoid modifying original
+
+  if n > arr.shape[0]:
+    raise ValueError("n cannot be greater than the array length")
+
+  new_beginning = arr[-n:]
+  new_end = arr[:-n]
+  return pd.DataFrame(np.concatenate((new_beginning, new_end)))
+
 if __name__ == '__main__':
     data = get_data('data/iris.data')
     print(f'Fetched data of shape ({data.shape})', data)

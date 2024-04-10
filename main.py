@@ -26,6 +26,7 @@ learning_rate = 0.003
 
 PLOT_DATA = True
 PREFER_PERCENTAGES = True
+USE_LAST_N_FOR_TRAINING = False
 
 # Fetching data from file
 class_0 = get_data('data/class_1')
@@ -35,6 +36,11 @@ class_2 = get_data('data/class_3')
 class_0 = drop_entry_columns(class_0, column_names=removed_feature_columns)
 class_1 = drop_entry_columns(class_1, column_names=removed_feature_columns)
 class_2 = drop_entry_columns(class_2, column_names=removed_feature_columns)
+
+if USE_LAST_N_FOR_TRAINING:
+  class_0 = shift_last_n_to_beginning(class_0, training_samples)
+  class_1 = shift_last_n_to_beginning(class_1, training_samples)
+  class_2 = shift_last_n_to_beginning(class_2, training_samples)
 
 # Splitting data sets
 class_0_train, class_0_test = separate_data(class_0, training_samples)

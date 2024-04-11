@@ -50,13 +50,13 @@ if PLOT_DATA:
     column_index = np.where(feature_names == feature)[0]
     fig, axs = plt.subplots(3, 1, sharex=True)
     axs[0] = sns.histplot(class_0.iloc[:, column_index], ax=axs[0], color='r')
-    axs[0].set_ylabel('Antall')
+    axs[0].set_ylabel('Amount')
     axs[0].set_title(f'Class 0')
     axs[1] = sns.histplot(class_1.iloc[:, column_index], ax=axs[1], color='g')
-    axs[1].set_ylabel('Antall')
+    axs[1].set_ylabel('Amount')
     axs[1].set_title(f'Class 1')
     axs[2] = sns.histplot(class_2.iloc[:, column_index], ax=axs[2], color='b')
-    axs[2].set_ylabel('Antall')
+    axs[2].set_ylabel('Amount')
     axs[2].set_title(f'Class 2')
     plt.suptitle(f'Feature {feature}')
     plt.tight_layout()
@@ -218,6 +218,8 @@ if PLOT_DATA:
                     yticklabels=axis_labels, annot=True, ax=axs[1], annot_kws={"size": 16})
   axs[1].set_title('Test set')
   plt.suptitle('Confusion matrices')
+  plt.ylabel('Actual value')
+  plt.xlabel('Predicted value')
   plt.tight_layout()
 
   if SAVE_PLOTS:

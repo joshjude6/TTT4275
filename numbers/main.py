@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import struct
 
 from keras.datasets import mnist
 from os import path

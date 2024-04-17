@@ -3,7 +3,6 @@ import numpy as np
 import os
 import struct
 
-from datahandler import get_largest_factor
 from os import path
 
 SHOW_PLOT = False
@@ -18,20 +17,27 @@ def read_bin(path):
 
 if __name__ == '__main__':
   dirname, filename = path.split(path.abspath(__file__))
-  data, sample_dimensions = read_bin(f'{dirname}/data/train_images.bin')
-  print('Data:', data.shape)
+  training_data, _ = read_bin(f'{dirname}/data/train_images.bin')
+  print('Training data:', training_data.shape)
+  # training_labels, _ = read_bin(f'{dirname}/data/train_labels.bin')
+  # print('Training labels:', training_labels.shape)
+  
+  # test_data, _ = read_bin(f'{dirname}/data/test_images.bin')
+  # print('Test data:', test_data.shape)
+  # test_labels, _ = read_bin(f'{dirname}/data/test_labels.bin')
+  # print('Test labels:', test_labels.shape)
 
   try:
     os.mkdir(f'{dirname}/tmp')
     print('INFO: Writing readable data to temporary file...')
-    np.savetxt(f'{dirname}/tmp/data.txt', data)
+    np.savetxt(f'{dirname}/tmp/data.txt', training_data)
     print('Data written to file...')
   except FileExistsError:
     print('INFO: Directory already exists')
 
   samples_per_chunk = 1000
-  number_of_chunks = data.shape[0] // samples_per_chunk  # Integer division for number of chunks
-  chunked_data = np.array_split(data, number_of_chunks, axis=0)
+  number_of_chunks = training_data.shape[0] // samples_per_chunk  # Integer division for number of chunks
+  chunked_data = np.array_split(training_data, number_of_chunks, axis=0)
   print(f'INFO: Training data split into {number_of_chunks} chunks of size {samples_per_chunk}')
 
   if SHOW_PLOT:

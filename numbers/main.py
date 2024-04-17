@@ -9,17 +9,6 @@ from os import path
 SHOW_PLOTS = False
 SAVE_PLOTS = False
 
-def read_bin(path, dtype='uint8', reshape=False):
-  with open(path, 'rb') as file:
-    _, size = struct.unpack(">II", file.read(8))
-    nrows, ncols = struct.unpack(">II", file.read(8))
-    data = np.fromfile(file, dtype=dtype)
-
-    if reshape:
-      data = data.reshape((size, nrows, ncols))
-
-  return data
-
 if __name__ == '__main__':
   if SAVE_PLOTS:
     try:

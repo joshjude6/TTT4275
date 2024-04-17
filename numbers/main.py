@@ -42,21 +42,21 @@ if __name__ == '__main__':
   samples_per_chunk = 1000
   number_of_training_chunks = training_data.shape[0] // samples_per_chunk  # Integer division for number of chunks
   number_of_label_chunks = training_labels.shape[0] // samples_per_chunk
-  chunked_data = np.array_split(training_data, number_of_training_chunks, axis=0)
-  chuncked_labels = np.array_split(training_labels, number_of_label_chunks, axis=0)
+  chunked_training_data = np.array(np.array_split(training_data, number_of_training_chunks, axis=0))
+  chunked_training_labels = np.array_split(training_labels, number_of_label_chunks, axis=0)
   print(f'INFO: Training data split into {number_of_training_chunks} chunks of size {samples_per_chunk}')
   print(f'INFO: Training labels split into {number_of_label_chunks} chunks of size {samples_per_chunk}')
 
   number_of_testing_chunks = test_data.shape[0] // samples_per_chunk
   number_of_testing_labels = test_labels.shape[0] // samples_per_chunk
-  chunked_test_data = np.array_split(test_data, number_of_testing_chunks, axis=0)
+  chunked_test_data = np.array(np.array_split(test_data, number_of_testing_chunks, axis=0))
   chunked_test_labels = np.array_split(test_labels, number_of_testing_labels, axis=0)
   print(f'INFO: Test data split into {number_of_testing_chunks} chunks of size {samples_per_chunk}')
   print(f'INFO: Test labels split into {number_of_testing_labels} chunks of size {samples_per_chunk}')
 
   if SHOW_PLOT:
     # Plot first 9 samples from chunk 0
-    for data_set in [chunked_data, chunked_test_data]:
+    for data_set in [chunked_training_data, chunked_test_data]:
       for i in range(9):
         first_samples = data_set[0][:9]
         plt.subplot(330 + 1 + i)
@@ -64,3 +64,12 @@ if __name__ == '__main__':
         plt.suptitle('First 9 samples from chunk 0')
         plt.tight_layout()
       plt.show()
+
+  # Normalize data
+  chunked_training_data = chunked_training_data / 255
+  chunked_test_data = chunked_test_data / 255
+
+  # One hot encode labels
+  one_hot_encode = lambda labels: np.eye(max(labels + 1))[labels]
+  encoded_training_labels = [one_hot_encode(chunk_labels) for chunk_labels in chunked_training_labels]
+  encoded_test_labels = [one_hot_encode(chunk_labels) for chunk_labels in chunked_test_labels]

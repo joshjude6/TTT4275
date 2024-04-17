@@ -33,7 +33,7 @@ Test labels: {test_labels.shape}
   chunked_training_data = np.array(np.array_split(training_data, number_of_training_chunks, axis=0))
   chunked_training_labels = np.array(np.array_split(training_labels, number_of_label_chunks, axis=0))
   print(f'''INFO: Training data split into {number_of_training_chunks} chunks of size {chunked_training_data.shape[1]}
-INFO: Training labels split into {number_of_label_chunks} chunks of size {len(chunked_training_labels[0])}
+INFO: Training labels split into {number_of_label_chunks} chunks of size {chunked_training_labels.shape[1]}
 ''')
 
   number_of_testing_chunks = test_data.shape[0] // samples_per_chunk
@@ -41,7 +41,7 @@ INFO: Training labels split into {number_of_label_chunks} chunks of size {len(ch
   chunked_test_data = np.array(np.array_split(test_data, number_of_testing_chunks, axis=0))
   chunked_test_labels = np.array(np.array_split(test_labels, number_of_testing_labels, axis=0))
   print(f'''INFO: Test data split into {number_of_testing_chunks} chunks of size {chunked_test_data.shape[1]}
-INFO: Test labels split into {number_of_testing_labels} chunks of size {len(chunked_test_labels[0])}
+INFO: Test labels split into {number_of_testing_labels} chunks of size {chunked_test_labels.shape[1]}
 ''')
 
   if SHOW_PLOTS:

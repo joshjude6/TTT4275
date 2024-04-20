@@ -1,12 +1,42 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-
+import numbersFunctions
 from keras.datasets import mnist
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 from os import path
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 SAVE_PLOTS = False
+
+def euclideanDistance(x, y):
+    return np.linalg.norm(x - y) #calculates euclidian distance using norm
+
+def nearestNeighbor(trainingData, trainingLabels, testSample):
+    minDistance = float('inf')
+    nearestNeighborIdx = None
+    
+    for i, j in enumerate(trainingData):
+        distance = euclideanDistance(j.flatten(), testSample.flatten()) #converts to 1D and looks at euclidian distance between every training sample and the test sample
+        if distance < minDistance:
+            minDistance = distance
+            nearestNeighborIdx = i #assigns the same class label as the closest training sample
+
+    return trainingLabels[nearestNeighborIdx]
+
+def evaluateNearestNeighbor(trainData, trainLabels, testData, testLabels):
+    correctPredictions = 0
+    totalSamples = len(testData)
+    predictedLabels = []
+    for i, testSample in enumerate(testData):
+        predictedLabel = nearestNeighbor(trainData, trainLabels, testSample) #predicts current test sample
+        predictedLabels.append(predictedLabel)
+        if predictedLabel == testLabels[i]: # -> correct prediction
+            correctPredictions += 1
+    
+    accuracy = correctPredictions / totalSamples
+    return accuracy, predictedLabels
 
 if __name__ == '__main__':
   if SAVE_PLOTS:
@@ -71,3 +101,16 @@ Test labels: {chunked_test_labels.shape}
   print(f'''Encoded Training Labels: {encoded_training_labels.shape}
 Encoded Test Labels {encoded_test_labels.shape}
 ''')
+  
+  # Evaluate nearest neighbor classifier
+  accuracy, predicted_labels = evaluateNearestNeighbor(chunked_training_data[0], chunked_training_labels[0], chunked_test_data[0], chunked_test_labels[0])
+  print("Accuracy:", accuracy)
+
+    # Plot confusion matrix
+  cm = confusion_matrix(chunked_test_labels[0], predicted_labels)
+  plt.figure(figsize=(10, 8))
+  sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+  plt.title('Confusion Matrix')
+  plt.xlabel('Predicted')
+  plt.ylabel('Actual')
+  plt.show()

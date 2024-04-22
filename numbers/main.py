@@ -1,4 +1,3 @@
-import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -7,13 +6,14 @@ from keras.datasets import mnist
 import seaborn as sns
 
 
+from datetime import datetime
 from keras.datasets import mnist
 from sklearn.cluster import KMeans
 from sklearn.metrics import confusion_matrix
 from os import path
 
 PLOT_DATA = True
-SAVE_PLOTS = False
+SAVE_PLOTS = True
 CHUNK_TRAINING_DATA = True
 
 def euclideanDistance(x, y):
@@ -77,7 +77,7 @@ def testKNN(training_data, training_labels, test_data, test_labels, K):
       cm = confusion_matrix(test_labels, predicted_labels)
       plt.figure(figsize=(10, 8))
       sns.heatmap(cm, annot=True, fmt='d', cmap='crest') #endre farge hvis du vil
-      plt.title('Confusion Matrix')
+      plt.title(f'Confusion Matrix, Full Data Set\nK={K}')
       plt.xlabel('Predicted')
       plt.ylabel('Actual')
       plt.tight_layout()
@@ -97,7 +97,7 @@ def testKNN(training_data, training_labels, test_data, test_labels, K):
         cm = confusion_matrix(test_labels[i], predicted_labels)
         plt.figure(figsize=(10, 8))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-        plt.title('Confusion Matrix')
+        plt.title(f'Confusion Matrix, Chunk size {test_labels.shape[1]}\nChunk ' + str(i) + ', K=' + str(K))
         plt.xlabel('Predicted')
         plt.ylabel('Actual')
         plt.tight_layout()
@@ -226,18 +226,10 @@ Encoded Test Labels {encoded_test_labels.shape}
   ''' 
 
   # Testing av KNN og NN uten clustering
-  # timer_start = time.time()
-  # testKNN(training_data, training_labels, test_data, test_labels, 5)
-  # print('Finished!')
-  # total_time = time.time() - timer_start
-  # show_minutes = False
-  # if 120 < total_time:
-  #   total_time /= 60
-  #   show_minutes = True
-  # print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
   
+  k = 7
   timer_start = time.time()
-  testKNN(training_data, training_labels, test_data, test_labels, 7)
+  testKNN(training_data, training_labels, test_data, test_labels, k)
   print('Finished!')
   total_time = time.time() - timer_start
   show_minutes = False
@@ -245,24 +237,3 @@ Encoded Test Labels {encoded_test_labels.shape}
     total_time /= 60
     show_minutes = True
   print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
-  
-  # timer_start = time.time()
-  # testKNN(training_data, training_labels, test_data, test_labels, 9)
-  # print('Finished!')
-  # total_time = time.time() - timer_start
-  # show_minutes = False
-  # if 120 < total_time:
-  #   total_time /= 60
-  #   show_minutes = True
-  # print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
-  
-  # timer_start = time.time()
-  # testKNN(training_data, training_labels, test_data, test_labels, 11)
-  # print('Finished!')
-  # total_time = time.time() - timer_start
-  # show_minutes = False
-  # if 120 < total_time:
-  #   total_time /= 60
-  #   show_minutes = True
-  # print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
-  # # Evaluate nearest neighbor classifier

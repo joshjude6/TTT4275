@@ -1,17 +1,20 @@
+import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import seaborn as sns
 import time
+from keras.datasets import mnist
+import seaborn as sns
+
 
 from keras.datasets import mnist
 from sklearn.cluster import KMeans
 from sklearn.metrics import confusion_matrix
 from os import path
 
-SHOW_PLOTS = False
+PLOT_DATA = True
 SAVE_PLOTS = False
-CHUNK_TRAINING_DATA = False
+CHUNK_TRAINING_DATA = True
 
 def euclideanDistance(x, y):
     return np.linalg.norm(x - y) #calculates euclidian distance using norm
@@ -46,12 +49,12 @@ def KNN(trainingData, trainingLabels, testSample, K):
 
     return max(labelCounterList, key=labelCounterList.get) #returns label corresponding to max value
 
-def evaluateNearestNeighbor(trainData, trainLabels, testData, testLabels):
+def evaluateKNN(trainData, trainLabels, testData, testLabels, K):
     correctPredictions = 0
     totalSamples = len(testData)
     predictedLabels = []
     for i, testSample in enumerate(testData):
-        predictedLabel = KNN(trainData, trainLabels, testSample, 7) #predicts current test sample as seen above
+        predictedLabel = KNN(trainData, trainLabels, testSample, K) #predicts current test sample as seen above
         predictedLabels.append(predictedLabel)
         if predictedLabel == testLabels[i]: # -> correct prediction
             correctPredictions += 1
@@ -59,14 +62,66 @@ def evaluateNearestNeighbor(trainData, trainLabels, testData, testLabels):
     accuracy = correctPredictions / totalSamples
     return accuracy, predictedLabels
 
+def testKNN(training_data, training_labels, test_data, test_labels, K):
+  print(f"Testing with K = {K}")
+  start = time.time()
+  accuracyList = np.array([])
+  if 3 == training_data.ndim:
+    print('Running KNN on full data set...')
+    chunk_timer_start = time.time()
+    accuracy, predicted_labels = evaluateKNN(training_data, training_labels, test_data, test_labels, K)
+    print(f'Accuracy: {accuracy} | Time elapsed: {(time.time() - chunk_timer_start) / 60:.2f}min')
+    accuracyList = np.append(accuracyList, accuracy)
+    # Plot confusion matrix
+    if PLOT_DATA:
+      cm = confusion_matrix(test_labels, predicted_labels)
+      plt.figure(figsize=(10, 8))
+      sns.heatmap(cm, annot=True, fmt='d', cmap='crest') #endre farge hvis du vil
+      plt.title('Confusion Matrix')
+      plt.xlabel('Predicted')
+      plt.ylabel('Actual')
+      plt.tight_layout()
+
+      if SAVE_PLOTS:
+        plt.savefig(f'{plot_path}/confusion_matrix{'__k_' + str(K)}.svg')
+
+  else:
+    print(f'Running KNN on {test_data.shape[0]} chunks...')
+    for i in range(test_data.shape[0]):
+      chunk_timer_start = time.time()
+      accuracy, predicted_labels = evaluateKNN(training_data[i], training_labels[i], test_data[i], test_labels[i], K)
+      print(f'Chunk #{i + 1} Accuracy: {accuracy} | Time elapsed: {time.time() - chunk_timer_start:.2f}s')
+      accuracyList = np.append(accuracyList, accuracy)
+      # Plot confusion matrix
+      if PLOT_DATA:
+        cm = confusion_matrix(test_labels[i], predicted_labels)
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.title('Confusion Matrix')
+        plt.xlabel('Predicted')
+        plt.ylabel('Actual')
+        plt.tight_layout()
+
+        if SAVE_PLOTS:
+          plt.savefig(f'{plot_path}/confusion_matrix{'__k_' + str(K)}{'__chunk_' + str(i) if CHUNK_TRAINING_DATA else ''}.svg')
+
+  if PLOT_DATA:
+    plt.show()
+    
+  print(f"Total accuracy for set of chunks, with K = {K}: {np.average(accuracyList)*100:.2f}%.")
+  end = time.time()
+  print(f"Run time: {((end-start)/60):.2f} minutes.")
+
+
 if __name__ == '__main__':
-  if SAVE_PLOTS:
-    try:
-      dirname, filename = path.split(path.abspath(__file__))
-      os.mkdir(f'{dirname}/plots')
-      print('INFO: Writing readable data to temporary file...')
-    except FileExistsError:
-      print('INFO: Temporary file already exists')
+  try:
+    dirname, filename = path.split(path.abspath(__file__))
+    timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+    plot_path = f'{dirname}/plots'
+    os.mkdir(plot_path)
+    print('INFO: Writing readable data to temporary file...')
+  except FileExistsError:
+    print('INFO: Temporary file already exists')
 
   # Load data
   print('Loading data...')
@@ -106,16 +161,17 @@ Test data: {test_data.shape}
 Test labels: {test_labels.shape}
 ''')
 
-  if SHOW_PLOTS:
-    # Plot first 9 samples from chunk 0
-    for data_set in [training_data, test_data]:
-      for i in range(9):
-        first_samples = data_set[0][:9]
-        plt.subplot(330 + 1 + i)
-        plt.imshow(first_samples[i], cmap=plt.get_cmap('gray'))
-        plt.suptitle('First 9 samples from chunk 0')
-        plt.tight_layout()
-      plt.show()
+  # Plot first 9 samples from chunk 0
+  # if PLOT_DATA:
+  #   for data_set in [training_data, test_data]:
+  #     for i in range(9):
+  #       first_samples = data_set[0][:9]
+  #       plt.subplot(330 + 1 + i)
+  #       plt.imshow(first_samples[i], cmap=plt.get_cmap('gray'))
+  #       plt.suptitle('First 9 samples from chunk 0')
+  #       plt.tight_layout()
+          
+  #     plt.show()
 
   # Normalize data
   training_data = training_data / 255
@@ -139,42 +195,74 @@ Test labels: {test_labels.shape}
 Encoded Test Labels {encoded_test_labels.shape}
 ''')
   
-  # Evaluate nearest neighbor classifier
-  print('Evaluating for each test data chunk...')
+
+      
+
+
+  ''' Kode som ikke funker
+  def clusteringData(training_data, training_labels, numClusters):
+    flatData = training_data.reshape(training_data.shape[0], -1) 
+    flatLabels = training_labels.reshape(training_data.shape[0], -1) 
+    kmeans = KMeans(numClusters, random_state=0)
+    kmeans.fit(flatData) #fitting kmeans to flattened training data
+    clusterLabels = kmeans.labels_
+
+    clusteredData = []
+    clusteredLabels = [] 
+
+    for i in range(numClusters):
+        data = flatData[clusteredData == i]
+        labels = flatLabels[clusteredLabels == i]
+        clusteredData.append(data)
+        clusteredLabels.append(labels)
+    
+    return clusteredData, clusteredLabels
+
+  clustered_training_data, clustered_training_labels = clusteringData(chunked_training_data, chunked_training_labels, 64)
+
+  # Test KNN with clustered data
+  print(f"Testing with K = 5, using 64 clusters")
+  testKNN(clustered_training_data, clustered_training_labels, chunked_test_data, chunked_test_labels, 5)
+  ''' 
+
+  # Testing av KNN og NN uten clustering
+  # timer_start = time.time()
+  # testKNN(training_data, training_labels, test_data, test_labels, 5)
+  # print('Finished!')
+  # total_time = time.time() - timer_start
+  # show_minutes = False
+  # if 120 < total_time:
+  #   total_time /= 60
+  #   show_minutes = True
+  # print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
+  
   timer_start = time.time()
-  if 3 == training_data.ndim:
-    chunk_timer_start = time.time()
-    accuracy, predicted_labels = evaluateNearestNeighbor(training_data, training_labels, test_data, test_labels)
-    print(f'Accuracy: {accuracy} | Time elapsed: {(time.time() - chunk_timer_start) / 60:.2f}min')
-
-    # Plot confusion matrix
-    cm = confusion_matrix(test_labels, predicted_labels)
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-  else:
-    for i in range(test_data.shape[0]):
-      chunk_timer_start = time.time()
-      accuracy, predicted_labels = evaluateNearestNeighbor(training_data[i], training_labels[i], test_data[i], test_labels[i])
-      print(f'Chunk #{i + 1} Accuracy: {accuracy} | Time elapsed: {time.time() - chunk_timer_start:.2f}s')
-
-      # Plot confusion matrix
-      cm = confusion_matrix(test_labels[i], predicted_labels)
-      plt.figure(figsize=(10, 8))
-      sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-      plt.title('Confusion Matrix')
-      plt.xlabel('Predicted')
-      plt.ylabel('Actual')
-
+  testKNN(training_data, training_labels, test_data, test_labels, 7)
   print('Finished!')
   total_time = time.time() - timer_start
   show_minutes = False
   if 120 < total_time:
-     total_time /= 60
-     show_minutes = True
+    total_time /= 60
+    show_minutes = True
   print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
-
-  if SHOW_PLOTS:
-    plt.show()
+  
+  # timer_start = time.time()
+  # testKNN(training_data, training_labels, test_data, test_labels, 9)
+  # print('Finished!')
+  # total_time = time.time() - timer_start
+  # show_minutes = False
+  # if 120 < total_time:
+  #   total_time /= 60
+  #   show_minutes = True
+  # print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
+  
+  # timer_start = time.time()
+  # testKNN(training_data, training_labels, test_data, test_labels, 11)
+  # print('Finished!')
+  # total_time = time.time() - timer_start
+  # show_minutes = False
+  # if 120 < total_time:
+  #   total_time /= 60
+  #   show_minutes = True
+  # print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
+  # # Evaluate nearest neighbor classifier

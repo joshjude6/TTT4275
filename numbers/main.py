@@ -69,7 +69,10 @@ if __name__ == '__main__':
       print('INFO: Temporary file already exists')
 
   # Load data
+  print('Loading data...')
+  timer_start = time.time()
   (training_data, training_labels), (test_data, test_labels) = mnist.load_data()
+  print(f'Loading done! | Time elapsed: {time.time() - timer_start:.2f}s')
   
   print(f'''Training data: {training_data.shape}
 Training labels: {training_labels.shape}
@@ -79,21 +82,23 @@ Test labels: {test_labels.shape}
 
   # Split data into chunks
   if CHUNK_TRAINING_DATA:
+    print('Chunking data...')
+    timer_start = time.time()
     samples_per_chunk = 1000
     number_of_training_chunks = training_data.shape[0] // samples_per_chunk  # Integer division for number of chunks
     number_of_label_chunks = training_labels.shape[0] // samples_per_chunk
     training_data = np.array(np.array_split(training_data, number_of_training_chunks, axis=0))
     training_labels = np.array(np.array_split(training_labels, number_of_label_chunks, axis=0))
-    print(f'''INFO: Training data split into {number_of_training_chunks} chunks of size {training_data.shape[1]}
-INFO: Training labels split into {number_of_label_chunks} chunks of size {training_labels.shape[1]}''')
+    print(f'''INFO: Training data split into {number_of_training_chunks} with dimensions {training_data.shape}
+INFO: Training labels split into {number_of_label_chunks} with dimensions {training_labels.shape}''')
 
     number_of_testing_chunks = test_data.shape[0] // samples_per_chunk
     number_of_testing_labels = test_labels.shape[0] // samples_per_chunk
     test_data = np.array(np.array_split(test_data, number_of_testing_chunks, axis=0))
     test_labels = np.array(np.array_split(test_labels, number_of_testing_labels, axis=0))
-    print(f'''INFO: Test data split into {number_of_testing_chunks} chunks of size {test_data.shape[1]}
-INFO: Test labels split into {number_of_testing_labels} chunks of size {test_labels.shape[1]}
-''')
+    print(f'''INFO: Test data split into {number_of_testing_chunks} with dimensions {test_data.shape}
+INFO: Test labels split into {number_of_testing_labels} with dimensions {test_labels.shape}''')
+    print(f'Chunking done! | Time elapsed: {time.time() - timer_start:.2f}s\n')
   
   print(f'''Training data: {training_data.shape}
 Training labels: {training_labels.shape}
@@ -119,12 +124,15 @@ Test labels: {test_labels.shape}
   # One hot encode labels
   one_hot_encode = lambda labels: np.eye(max(labels + 1))[labels]
 
+  print('Encoding labels...')
+  timer_start = time.time()
   if 1 < training_labels.ndim:
     encoded_training_labels = np.array([one_hot_encode(label_chunk) for label_chunk in training_labels])
     encoded_test_labels = np.array([one_hot_encode(label_chunk) for label_chunk in test_labels])
   else:
     encoded_training_labels = np.array(one_hot_encode(training_labels))
     encoded_test_labels = np.array(one_hot_encode(test_labels))
+  print(f'Encoding done! | Time elapsed: {time.time() - timer_start:.2f}s')
      
 
   print(f'''Encoded Training Labels: {encoded_training_labels.shape}
@@ -133,22 +141,36 @@ Encoded Test Labels {encoded_test_labels.shape}
   
   # Evaluate nearest neighbor classifier
   print('Evaluating for each test data chunk...')
-  start_time = time.time()
-  for i in range(test_data.shape[0]):
+  timer_start = time.time()
+  if 3 == training_data.ndim:
+    # pass
     chunk_timer_start = time.time()
-    accuracy, predicted_labels = evaluateNearestNeighbor(training_data[i], training_labels[i], test_data[i], test_labels[i])
-    print(f'Chunk #{i + 1} Accuracy: {accuracy} | Time elapsed: {time.time() - chunk_timer_start:.2f}s')
+    accuracy, predicted_labels = evaluateNearestNeighbor(training_data, training_labels, test_data, test_labels)
+    print(f'Accuracy: {accuracy} | Time elapsed: {(time.time() - chunk_timer_start) / 60:.2f}min')
 
     # Plot confusion matrix
-    cm = confusion_matrix(test_labels[i], predicted_labels)
+    cm = confusion_matrix(test_labels, predicted_labels)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
     plt.title('Confusion Matrix')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
+  else:
+    for i in range(test_data.shape[0]):
+      chunk_timer_start = time.time()
+      accuracy, predicted_labels = evaluateNearestNeighbor(training_data[i], training_labels[i], test_data[i], test_labels[i])
+      print(f'Chunk #{i + 1} Accuracy: {accuracy} | Time elapsed: {time.time() - chunk_timer_start:.2f}s')
+
+      # Plot confusion matrix
+      cm = confusion_matrix(test_labels[i], predicted_labels)
+      plt.figure(figsize=(10, 8))
+      sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+      plt.title('Confusion Matrix')
+      plt.xlabel('Predicted')
+      plt.ylabel('Actual')
 
   print('Finished!')
-  print(f"Total time elapsed: {time.time() - start_time:.2f}s")
+  print(f"Total time elapsed: {time.time() - timer_start:.2f}min")
 
   if SHOW_PLOTS:
     plt.show()

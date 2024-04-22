@@ -11,7 +11,7 @@ from os import path
 
 SHOW_PLOTS = False
 SAVE_PLOTS = False
-CHUNK_TRAINING_DATA = True
+CHUNK_TRAINING_DATA = False
 
 def euclideanDistance(x, y):
     return np.linalg.norm(x - y) #calculates euclidian distance using norm
@@ -118,8 +118,15 @@ Test labels: {test_labels.shape}
 
   # One hot encode labels
   one_hot_encode = lambda labels: np.eye(max(labels + 1))[labels]
-  encoded_training_labels = np.array([one_hot_encode(label_chunk) for label_chunk in training_labels])
-  encoded_test_labels = np.array([one_hot_encode(label_chunk) for label_chunk in test_labels])
+
+  if 1 < training_labels.ndim:
+    encoded_training_labels = np.array([one_hot_encode(label_chunk) for label_chunk in training_labels])
+    encoded_test_labels = np.array([one_hot_encode(label_chunk) for label_chunk in test_labels])
+  else:
+    encoded_training_labels = np.array(one_hot_encode(training_labels))
+    encoded_test_labels = np.array(one_hot_encode(test_labels))
+     
+
   print(f'''Encoded Training Labels: {encoded_training_labels.shape}
 Encoded Test Labels {encoded_test_labels.shape}
 ''')

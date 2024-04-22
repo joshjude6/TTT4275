@@ -14,7 +14,7 @@ from os import path
 
 PLOT_DATA = True
 SAVE_PLOTS = True
-CHUNK_TRAINING_DATA = True
+CHUNK_TRAINING_DATA = False
 
 def euclideanDistance(x, y):
     return np.linalg.norm(x - y) #calculates euclidian distance using norm

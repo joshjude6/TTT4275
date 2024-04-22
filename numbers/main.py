@@ -143,7 +143,6 @@ Encoded Test Labels {encoded_test_labels.shape}
   print('Evaluating for each test data chunk...')
   timer_start = time.time()
   if 3 == training_data.ndim:
-    # pass
     chunk_timer_start = time.time()
     accuracy, predicted_labels = evaluateNearestNeighbor(training_data, training_labels, test_data, test_labels)
     print(f'Accuracy: {accuracy} | Time elapsed: {(time.time() - chunk_timer_start) / 60:.2f}min')
@@ -170,7 +169,12 @@ Encoded Test Labels {encoded_test_labels.shape}
       plt.ylabel('Actual')
 
   print('Finished!')
-  print(f"Total time elapsed: {time.time() - timer_start:.2f}min")
+  total_time = time.time() - timer_start
+  show_minutes = False
+  if 120 < total_time:
+     total_time /= 60
+     show_minutes = True
+  print(f"Total time elapsed: {total_time:.2f}{'min' if show_minutes else 's'}")
 
   if SHOW_PLOTS:
     plt.show()

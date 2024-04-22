@@ -21,7 +21,7 @@ learning_rate = 0.003
 
 PREFER_PERCENTAGES = True
 USE_LAST_N_FOR_TRAINING = False
-PLOT_DATA = True
+PLOT_DATA = False
 SAVE_PLOTS = False
 
 try:
@@ -104,15 +104,11 @@ test_data = pd.concat([class_0_test, class_1_test, class_2_test]).values
 print('Data, Training:', training_data.shape)
 print('Data, Testing:', test_data.shape)
 
-# Normalising data
-max_values = np.array([training_data[:, i].max() for i in range(number_of_features)])
-print('Max values:', max_values)
-np.savetxt(f'{temp_path}/max_values.txt', max_values)
-
 # Setting up target vectors and weight matrix
-target_vectors = [single_value_zero_matrix(shape=number_of_classes, position=i, value=1) for i in range(number_of_classes)]
-training_target_vectors = np.vstack([np.tile(vec, (training_samples, 1)) for vec in target_vectors])
-testing_target_vectors = np.vstack([np.tile(vec, (testing_samples, 1)) for vec in target_vectors])
+one_hot_encode = lambda labels: np.eye(max(labels + 1))[labels]
+target_vectors = one_hot_encode(np.array([i for i in range(number_of_classes)]))
+training_target_vectors = np.vstack([np.tile(vector, (training_samples, 1)) for vector in target_vectors])
+testing_target_vectors = np.vstack([np.tile(vector, (testing_samples, 1)) for vector in target_vectors])
 print('Target vector, Training:', training_target_vectors.shape)
 print('Target vector, Testing:', testing_target_vectors.shape)
 

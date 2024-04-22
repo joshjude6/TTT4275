@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import time
 import numbersFunctions
 from keras.datasets import mnist
 import seaborn as sns
@@ -8,7 +9,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.cluster import KMeans
 from os import path
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 SAVE_PLOTS = False
 
 def euclideanDistance(x, y):
@@ -44,18 +45,19 @@ def KNN(trainingData, trainingLabels, testSample, K):
 
     return max(labelCounterList, key=labelCounterList.get) #returns label corresponding to max value
 
-def evaluateNearestNeighbor(trainData, trainLabels, testData, testLabels):
+def evaluateKNN(trainData, trainLabels, testData, testLabels, K):
     correctPredictions = 0
     totalSamples = len(testData)
     predictedLabels = []
     for i, testSample in enumerate(testData):
-        predictedLabel = KNN(trainData, trainLabels, testSample, 7) #predicts current test sample as seen above
+        predictedLabel = KNN(trainData, trainLabels, testSample, K) #predicts current test sample as seen above
         predictedLabels.append(predictedLabel)
         if predictedLabel == testLabels[i]: # -> correct prediction
             correctPredictions += 1
     
     accuracy = correctPredictions / totalSamples
     return accuracy, predictedLabels
+
 
 if __name__ == '__main__':
   if SAVE_PLOTS:
@@ -121,16 +123,59 @@ Test labels: {chunked_test_labels.shape}
 Encoded Test Labels {encoded_test_labels.shape}
 ''')
   
-  # Evaluate nearest neighbor classifier
-  for i in range(9):
-    accuracy, predicted_labels = evaluateNearestNeighbor(chunked_training_data[i], chunked_training_labels[i], chunked_test_data[i], chunked_test_labels[i])
-    print("Accuracy:", accuracy)
-
+def testKNN(training_data, training_labels, test_data, test_labels, K):
+  start = time.time()
+  accuracyList = np.array([])
+  for i in range(len(test_data)):
+    accuracy, predicted_labels = evaluateKNN(training_data[i], training_labels[i], test_data[i], test_labels[i], K)
+    accuracyList = np.append(accuracyList, accuracy)
     # Plot confusion matrix
     cm = confusion_matrix(chunked_test_labels[i], predicted_labels)
     plt.figure(figsize=(10, 8))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    sns.heatmap(cm, annot=True, fmt='d', cmap='crest') #endre farge hvis du vil
     plt.title('Confusion Matrix')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
+    
+  print(f"Total accuracy for set of chunks, with K = {K}: {np.average(accuracyList)*100:.2f}%.")
+  end = time.time()
+  print(f"Run time: {((end-start)/60):.2f} minutes.")
+
+
+''' Kode som ikke funker
+def clusteringData(training_data, training_labels, numClusters):
+   flatData = training_data.reshape(training_data.shape[0], -1) 
+   flatLabels = training_labels.reshape(training_data.shape[0], -1) 
+   kmeans = KMeans(numClusters, random_state=0)
+   kmeans.fit(flatData) #fitting kmeans to flattened training data
+   clusterLabels = kmeans.labels_
+
+   clusteredData = []
+   clusteredLabels = [] 
+
+   for i in range(numClusters):
+      data = flatData[clusteredData == i]
+      labels = flatLabels[clusteredLabels == i]
+      clusteredData.append(data)
+      clusteredLabels.append(labels)
+   
+   return clusteredData, clusteredLabels
+
+clustered_training_data, clustered_training_labels = clusteringData(chunked_training_data, chunked_training_labels, 64)
+
+# Test KNN with clustered data
+print(f"Testing with K = 5, using 64 clusters")
+testKNN(clustered_training_data, clustered_training_labels, chunked_test_data, chunked_test_labels, 5)
+''' 
+
+''' Testing av KNN og NN uten clustering
+print("Testing with K = 5, no clustering - 10 chunks")
+testKNN(chunked_training_data, chunked_training_labels, chunked_test_data, chunked_test_labels, 5)
+print("Testing with K = 9, no clustering - 10 chunks")
+testKNN(chunked_training_data, chunked_training_labels, chunked_test_data, chunked_test_labels, 9)
+print("Testing with K = 11, no clustering - 10 chunks")
+testKNN(chunked_training_data, chunked_training_labels, chunked_test_data, chunked_test_labels, 11)
+#print("Testing with K = 7, no clustering")
+#testKNN(chunked_training_data, chunked_training_labels, chunked_test_data, chunked_test_labels, 7)
+'''

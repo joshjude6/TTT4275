@@ -35,7 +35,7 @@ def nearestNeighbor(trainingData, trainingLabels, testSample):
 
     return trainingLabels[nearestNeighborIndex]
 
-# vanlig KNN, brukes til funksjonen som tester KNN uten clustering
+# ordinary KNN, used for non-clustered data
 def KNN(trainingData, trainingLabels, testSample, K):
     distances = []
     for i, j in enumerate(trainingData):
@@ -54,8 +54,8 @@ def KNN(trainingData, trainingLabels, testSample, K):
 
     return max(labelCounterList, key=labelCounterList.get) #returns label corresponding to max value
 
-# KNN tilpasset slik at den skal funke med clustering
-def KNN_with_Kmeans(templates, testSample, K):
+# KNN designed to be used with clusered
+def knnForKmeans(templates, testSample, K):
     distances = []
     for label, cluster_centers in templates.items():
         for center in cluster_centers:
@@ -74,13 +74,13 @@ def KNN_with_Kmeans(templates, testSample, K):
     return max(labelCounterList, key=labelCounterList.get)
 
 # om du vil teste KNN MED clustering, bruk denne
-def evaluateKNN_with_Kmeans(templates, testData, testLabels, K):
+def evaluateKnnForKmeans(templates, testData, testLabels, K):
     start = time.time()
     correctPredictions = 0
     totalSamples = len(testData)
     predictedLabels = []
     for testSample, trueLabel in zip(testData, testLabels):
-        predictedLabel = KNN_with_Kmeans(templates, testSample, K)
+        predictedLabel = knnForKmeans(templates, testSample, K)
         predictedLabels.append(predictedLabel)
         if predictedLabel == trueLabel:
             correctPredictions += 1
@@ -88,7 +88,6 @@ def evaluateKNN_with_Kmeans(templates, testData, testLabels, K):
     accuracy = correctPredictions / totalSamples
     end = time.time()
     timeDiff = end-start
-    '''
     cm = confusion_matrix(test_labels, predictedLabels)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='rocket') #endre farge hvis du vil
@@ -96,11 +95,9 @@ def evaluateKNN_with_Kmeans(templates, testData, testLabels, K):
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.show()
-    '''
-    
-    minutes = int((end-start) // 60)
-    seconds = int((end-start) % 60)
-    #print(f"Run time: {minutes} minutes and {seconds} seconds.")
+    minutes = int((timeDiff) // 60)
+    seconds = int((timeDiff) % 60)
+    print(f"Run time: {minutes} minutes and {seconds} seconds.")
     return accuracy, predictedLabels, timeDiff
 
 # selveste clusteringen !! wow
@@ -114,7 +111,6 @@ def clustering(data, labels, num_clusters=64):
     return templates
 
 # denne brukes for testing av KNN UTEN clustering
-
 def evaluateKNN(trainData, trainLabels, testData, testLabels, K):
     correctPredictions = 0
     correctIndexes = []
@@ -134,7 +130,6 @@ def evaluateKNN(trainData, trainLabels, testData, testLabels, K):
     return accuracy, predictedLabels, correctIndexes, failedIndexes
 
 # om du vil teste KNN UTEN clustering, bruk denne - NN: sett K til 1
-
 def testKNN(training_data, training_labels, test_data, test_labels, K):
   knn_timer = Timer(f'KNN for full data set, K={K}')
   knn_timer.start()
@@ -151,60 +146,45 @@ def testKNN(training_data, training_labels, test_data, test_labels, K):
   plt.ylabel('Actual')
   plt.show()
   print("Total accuracy, with K = {}: {:.2f}%.".format(K, np.average(accuracyList) * 100))
-  plotNumbers(test_data, test_labels, predicted_labels, correctIndexes, failedIndexes, 4)
 
-def evaluateNearest(trainData, trainLabels, testData, testLabels):
+def evaluateNN(trainData, trainLabels, testData, testLabels):
     correctPredictions = 0
     totalSamples = len(testData)
     predictedLabels = []
+    correctIndexes = []
+    failedIndexes = []
     for i, testSample in enumerate(testData):
         predictedLabel = nearestNeighbor(trainData, trainLabels, testSample) #predicts current test sample
         predictedLabels.append(predictedLabel)
         if predictedLabel == testLabels[i]: # -> correct prediction
             correctPredictions += 1
+            correctIndexes.append(predictedLabel)
+        else:
+            failedIndexes.append(predictedLabel)
     accuracy = correctPredictions / totalSamples
-    plot_samples(testData, testLabels, predictedLabels, 6)
-    return accuracy, predictedLabels
+    return accuracy, predictedLabels, correctIndexes, failedIndexes
 
-
-def plot_samples(testData, testLabels, predictedLabels, num_samples):
-    correct_indices = [i for i in range(len(testLabels)) if predictedLabels[i] == testLabels[i]]
-    misclassified_indices = [i for i in range(len(testLabels)) if predictedLabels[i] != testLabels[i]]
-
-    correct_samples = np.random.choice(correct_indices, min(num_samples//2, len(correct_indices)), replace=False)
-    misclassified_samples = np.random.choice(misclassified_indices, min(num_samples//2, len(misclassified_indices)), replace=False)
+def plotSamples(testData, testLabels, predictedLabels, correctIndexes, failedIndexes, N):
+    correctSamples = np.random.choice(correctIndexes, min(N//2, len(correctIndexes)), replace=False)
+    failedSamples = np.random.choice(failedIndexes, min(N//2, len(failedIndexes)), replace=False)
 
     plt.figure(figsize=(12, 6))
-    for i, idx in enumerate(correct_samples):
-        plt.subplot(2, num_samples//2, i + 1)
+    for i, idx in enumerate(correctSamples):
+        plt.subplot(2, N//2, i + 1)
         plt.imshow(testData[idx].reshape(28, 28), cmap='rocket')
-        plt.title(f'Predicted label: {predictedLabels[idx]}, actual label: {testLabels[idx]}')
+        plt.title(f'Predicted label: {predictedLabels[idx]}\n Actual label: {testLabels[idx]}', fontsize=10)
         plt.axis('off')
 
-    for i, idx in enumerate(misclassified_samples):
-        plt.subplot(2, num_samples//2, num_samples//2 + i + 1)
+    for i, idx in enumerate(failedSamples):
+        plt.subplot(2, N//2, N//2 + i + 1)
         plt.imshow(testData[idx].reshape(28, 28), cmap='rocket')
-        plt.title(f'Predicted label: {predictedLabels[idx]}, actual label: {testLabels[idx]}')
+        plt.title(f'Predicted label: {predictedLabels[idx]}\n Actual label: {testLabels[idx]}', fontsize=10)
         plt.axis('off')
 
     plt.tight_layout()
     plt.show()
 
   
-
-def plotNumbers(test_data, test_labels, class_labels, correct, failed, N):
-   plt.figure(figsize=(10, 10))
-   for i in range(N):
-      plt.subplot(2, N, i+1)
-      plt.imshow(test_data[correct[i]], cmap=plt.get_cmap('rocket'))
-      plt.title("True label: " + str(test_labels[correct[i]]) + "\nPredicted label: " + str(class_labels[correct[i]]))
-      plt.axis('off')
-
-      plt.subplot(2, N, i+1+N)
-      plt.imshow(test_data[failed[i]], cmap=plt.get_cmap('rocket'))
-      plt.title("True label: " + str(test_labels[failed[i]]) + "\nPredicted label: " + str(class_labels[failed[i]]))
-      plt.axis('off')
-   plt.show()
 
 
 if __name__ == '__main__':
@@ -255,10 +235,10 @@ Test labels: {test_labels.shape}
   training_data = training_data / 255
   test_data = test_data / 255
   # One hot encode labels
-  '''
+  
   one_hot_encode = lambda labels: np.eye(max(labels + 1))[labels]
   encoded_training_labels = np.array([one_hot_encode(label_chunk) for label_chunk in training_labels])
   encoded_test_labels = np.array([one_hot_encode(label_chunk) for label_chunk in test_labels])
-  '''
-
-evaluateNearest(training_data[1], training_labels[1], test_data[1], test_labels[1])
+  
+for i in range(8):
+    evaluateNN(training_data[i], training_labels[i], test_data[i], test_labels[i])

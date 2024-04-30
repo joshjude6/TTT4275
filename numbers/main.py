@@ -169,16 +169,16 @@ def plotSamples(testData, testLabels, predictedLabels, correctIndexes, failedInd
     failedSamples = np.random.choice(failedIndexes, min(N//2, len(failedIndexes)), replace=False)
 
     plt.figure(figsize=(12, 6))
-    for i, idx in enumerate(correctSamples):
+    for i, j in enumerate(correctSamples):
         plt.subplot(2, N//2, i + 1)
-        plt.imshow(testData[idx].reshape(28, 28), cmap='rocket')
-        plt.title(f'Predicted label: {predictedLabels[idx]}\n Actual label: {testLabels[idx]}', fontsize=10)
+        plt.imshow(testData[j].reshape(28, 28), cmap='rocket')
+        plt.title(f'Predicted label: {predictedLabels[j]}\n Actual label: {testLabels[j]}', fontsize=10)
         plt.axis('off')
 
-    for i, idx in enumerate(failedSamples):
+    for i, j in enumerate(failedSamples):
         plt.subplot(2, N//2, N//2 + i + 1)
-        plt.imshow(testData[idx].reshape(28, 28), cmap='rocket')
-        plt.title(f'Predicted label: {predictedLabels[idx]}\n Actual label: {testLabels[idx]}', fontsize=10)
+        plt.imshow(testData[j].reshape(28, 28), cmap='rocket')
+        plt.title(f'Predicted label: {predictedLabels[j]}\n Actual label: {testLabels[j]}', fontsize=10)
         plt.axis('off')
 
     plt.tight_layout()

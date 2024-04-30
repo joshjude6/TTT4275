@@ -4,7 +4,7 @@ import os
 
 from algos.clustering import KMeansClustering
 from algos.k_nearest_neighbour import KNN, knnForKmeans, evaluateKnnForKmeans, evaluateKNN, testKNN
-from algos.nearest_neighbour import evaluateNN, nearestNeighbor
+from algos.nearest_neighbour import evaluate_nearest_neighbour, get_nearest_neighbour
 from collections import Counter
 from datetime import datetime
 from keras.datasets import mnist # type: ignore
@@ -91,5 +91,5 @@ Test labels: {test_labels.shape}
   timer.rename('Evaluate NN for multiple chunks')
   timer.start()
   for i in range(8):
-    evaluateNN(training_data[i], training_labels[i], test_data[i], test_labels[i])
+    evaluate_nearest_neighbour(training_data[i], training_labels[i], test_data[i], test_labels[i])
   timer.stop()

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import seaborn as sns
-from algos import evaluate_knn
 from collections import Counter
 from datetime import datetime
 from keras.datasets import mnist
@@ -10,7 +9,6 @@ from os import path
 from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.metrics import confusion_matrix
 from timer import Timer # type: ignore
-from numba import jit, types
 import time
 
 PLOT_DATA = True

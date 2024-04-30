@@ -101,14 +101,13 @@ def evaluateKnnForKmeans(templates, testData, testLabels, K):
     return accuracy, predictedLabels, timeDiff
 
 # selveste clusteringen !! wow
-def clustering(data, labels, num_clusters=64):
-    kmeans = KMeans(n_clusters=num_clusters, random_state=0) # initialiseres kmeans modellen, ikke mye mer bak det
-    templates = {} # templates dictionary: key, val = class label (altså hvilket tall det er), et array med cluster centers ift. alle bildene i trainingsettet som har den labelen
-    for classLabel in np.unique(labels): # itererer over sifrene 0 til 9
-        classData = data[labels == classLabel].reshape(-1, 784) # lager array med alle bildene av samme tall, og reshaper til 2d-array, der hver rad er en flattened versjon av et 28x28 bilde
-        kmeans.fit(classData) # tilpasser modellen til bildene
-        templates[classLabel] = kmeans.cluster_centers_ # lager key, val i templates med label og center
-    return templates
+def KMeansClustering(trainingData, trainingLabels, nClusters):
+    kmeans = KMeans(n_clusters=nClusters, random_state=0) 
+    clusterTemplates = {} 
+    for classLabel in np.unique(trainingLabels): 
+        classData = trainingData[trainingLabels == classLabel].reshape(-1, (28*28)) 
+        clusterTemplates[classLabel] = kmeans.cluster_centers_ 
+    return clusterTemplates
 
 # denne brukes for testing av KNN UTEN clustering
 def evaluateKNN(trainData, trainLabels, testData, testLabels, K):

@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 from algos.clustering import get_means_clustering_templates
-from algos.k_nearest_neighbour import KNN, knnForKmeans, evaluateKnnForKmeans, evaluateKNN, testKNN
+from algos.k_nearest_neighbour import get_k_nearest_neighbour, get_k_nearest_neighbours_with_means, evaluate_knn_with_means, evaluate_knn, test_knn
 from algos.nearest_neighbour import evaluate_nearest_neighbour, get_nearest_neighbour
 from collections import Counter
 from datetime import datetime

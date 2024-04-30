@@ -1,38 +1,42 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 
-from linalg import euclideanDistance
+from linalg import get_euclidean_distance
 from sklearn.metrics import confusion_matrix
 from timer import Timer # type: ignore
 
-
 # denne brukes for testing av KNN UTEN clustering
-def evaluateKNN(trainData, trainLabels, testData, testLabels, K):
-    correctPredictions = 0
-    correctIndexes = []
-    failedIndexes = [] 
-    totalSamples = len(testData)
-    predictedLabels = []
-    for i, testSample in enumerate(testData):
-        predictedLabel = KNN(trainData, trainLabels, testSample, K) #predicts current test sample as seen above
-        predictedLabels.append(predictedLabel)
-        if predictedLabel == testLabels[i]: # -> correct prediction
-            correctPredictions += 1
-            correctIndexes.append(i)
-        else:
-           failedIndexes.append(i)
+def evaluate_knn(training_data, training_labels, test_data, test_labels, K):
+    num_correct_predictions = 0
+    num_total_samples = test_data.shape[0]
+
+    predicted_labels = []
+    correct_indeces = []
+    failed_indeces = [] 
     
-    accuracy = correctPredictions / totalSamples
-    return accuracy, predictedLabels, correctIndexes, failedIndexes
+    for i, test_sample in enumerate(test_data):
+        label = get_k_nearest_neighbour(training_data, training_labels, test_sample, K) #predicts current test sample as seen above
+        predicted_labels.append(label)
+
+        if label == test_labels[i]: # -> correct prediction
+            num_correct_predictions += 1
+            correct_indeces.append(i)
+        else:
+           failed_indeces.append(i)
+    
+    accuracy = num_correct_predictions / num_total_samples
+    return accuracy, predicted_labels, correct_indeces, failed_indeces
 
 # om du vil teste KNN UTEN clustering, bruk denne - NN: sett K til 1
-def testKNN(training_data, training_labels, test_data, test_labels, K):
+def test_knn(training_data, training_labels, test_data, test_labels, K=1):
   knn_timer = Timer(f'KNN for full data set, K={K}')
   knn_timer.start()
   accuracyList = np.array([])
-  accuracy, predicted_labels, correctIndexes, failedIndexes = evaluateKNN(training_data, training_labels, test_data, test_labels, K)
+  accuracy, predicted_labels, correctIndexes, failedIndexes = evaluate_knn(training_data, training_labels, test_data, test_labels, K)
   accuracyList = np.append(accuracyList, accuracy)
   knn_timer.stop()
+
   # Plot confusion matrix
   cm = confusion_matrix(test_labels, predicted_labels)
   plt.figure(figsize=(10, 8))
@@ -45,57 +49,60 @@ def testKNN(training_data, training_labels, test_data, test_labels, K):
 
 
 # ordinary KNN, used for non-clustered data
-def KNN(trainingData, trainingLabels, testSample, K):
+def get_k_nearest_neighbour(training_data, training_labels, test_sample, K=1):
     distances = []
-    for i, j in enumerate(trainingData):
-        distance = euclideanDistance(j.flatten(), testSample.flatten()) #converts to 1D and looks at euclidian distance between every training sample and the test sample
+    for i, datapoint in enumerate(training_data):
+        distance = get_euclidean_distance(datapoint.flatten(), test_sample.flatten()) #converts to 1D and looks at euclidian distance between every training sample and the test sample
         distances.append((distance, i))
     
-    KNNindexes = [j for _, j in sorted(distances)[:K]]
-    KNNlabels = [trainingLabels[j] for j in KNNindexes] #sorting distances
+    knn_indeces = [j for _, j in sorted(distances)[:K]]
+    knn_labels = [training_labels[j] for j in knn_indeces] #sorting distances
 
-    labelCounterList = {}
-    for x in KNNlabels:
-        if x in labelCounterList:
-            labelCounterList[x] += 1
+    label_counter = {}
+    for x in knn_labels:
+        if x in label_counter:
+            label_counter[x] += 1
         else:
-            labelCounterList[x] = 1
+            label_counter[x] = 1
 
-    return max(labelCounterList, key=labelCounterList.get) #returns label corresponding to max value
+    return max(label_counter, key=label_counter.get) #returns label corresponding to max value
 
 # KNN designed to be used with clusered
-def knnForKmeans(templates, testSample, K):
+def get_k_nearest_neighbours_with_means(templates, test_sample, K=1):
     distances = []
     for label, cluster_centers in templates.items():
         for center in cluster_centers:
-            distance = euclideanDistance(center, testSample.flatten())
+            distance = get_euclidean_distance(center, test_sample.flatten())
             distances.append((distance, label))
     
-    KNNlabels = [label for _, label in sorted(distances)[:K]]
+    knn_labels = [label for _, label in sorted(distances)[:K]]
 
-    labelCounterList = {}
-    for label in KNNlabels:
-        if label in labelCounterList:
-            labelCounterList[label] += 1
+    label_counter = {}
+    for label in knn_labels:
+        if label in label_counter:
+            label_counter[label] += 1
         else:
-            labelCounterList[label] = 1
+            label_counter[label] = 1
 
-    return max(labelCounterList, key=labelCounterList.get)
+    return max(label_counter, key=label_counter.get)
 
 # om du vil teste KNN MED clustering, bruk denne
-def evaluateKnnForKmeans(templates, testData, testLabels, K):
+def evaluate_knn_with_means(templates, test_data, test_labels, K=1):
     timer = Timer('Evaluating KNN with clustering'); timer.start()
-    correctPredictions = 0
-    totalSamples = len(testData)
-    predictedLabels = []
-    for testSample, trueLabel in zip(testData, testLabels):
-        predictedLabel = knnForKmeans(templates, testSample, K)
-        predictedLabels.append(predictedLabel)
-        if predictedLabel == trueLabel:
-            correctPredictions += 1
+
+    num_total_samples = test_data.shape[0]
+    num_correct_predictions = 0
+    predicted_labels = []
+
+    for test_sample, true_label in zip(test_data, test_labels):
+        label = get_k_nearest_neighbours_with_means(templates, test_sample, K)
+        predicted_labels.append(label)
+        if label == true_label:
+            num_correct_predictions += 1
     
-    accuracy = correctPredictions / totalSamples
-    cm = confusion_matrix(testLabels, predictedLabels)
+    accuracy = num_correct_predictions / num_total_samples
+
+    cm = confusion_matrix(test_labels, predicted_labels)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='rocket') #endre farge hvis du vil
     plt.title('Confusion Matrix')
@@ -104,4 +111,4 @@ def evaluateKnnForKmeans(templates, testData, testLabels, K):
     plt.show()
     
     timer.stop()
-    return accuracy, predictedLabels, timeDiff
+    return accuracy, predicted_labels

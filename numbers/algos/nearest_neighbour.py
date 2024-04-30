@@ -1,4 +1,4 @@
-from linalg import euclideanDistance
+from linalg import get_euclidean_distance
 
 def evaluate_nearest_neighbour(training_data, training_labels, test_data, test_labels):
     num_correct_predictions = 0
@@ -25,7 +25,7 @@ def get_nearest_neighbour(training_data, training_labels, test_sample):
     neighbour_index = None
     
     for i, datapoint in enumerate(training_data):
-        distance = euclideanDistance(datapoint.flatten(), test_sample.flatten()) #converts to 1D and looks at euclidian distance between every training sample and the test sample
+        distance = get_euclidean_distance(datapoint.flatten(), test_sample.flatten()) #converts to 1D and looks at euclidian distance between every training sample and the test sample
         if distance < minimum_distance:
             minimum_distance = distance
             neighbour_index = i #assigns the same class label as the closest training sample

@@ -1,4 +1,4 @@
 import numpy as np
 
-def euclideanDistance(x, y):
+def get_euclidean_distance(x, y):
    return np.linalg.norm(x - y)

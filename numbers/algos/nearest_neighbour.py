@@ -1,4 +1,24 @@
 from linalg import euclideanDistance
+from timer import Timer # type: ignore
+
+def evaluateNN(trainData, trainLabels, testData, testLabels):
+    correctPredictions = 0
+    totalSamples = len(testData)
+    predictedLabels = []
+    correctIndexes = []
+    failedIndexes = []
+    
+    for i, testSample in enumerate(testData):
+        predictedLabel = nearestNeighbor(trainData, trainLabels, testSample) #predicts current test sample
+        predictedLabels.append(predictedLabel)
+        if predictedLabel == testLabels[i]: # -> correct prediction
+            correctPredictions += 1
+            correctIndexes.append(predictedLabel)
+        else:
+            failedIndexes.append(predictedLabel)
+    accuracy = correctPredictions / totalSamples
+    
+    return accuracy, predictedLabels, correctIndexes, failedIndexes
 
 def nearestNeighbor(trainingData, trainingLabels, testSample):
     minDistance = float('inf')

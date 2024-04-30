@@ -16,10 +16,6 @@ SAVE_PLOTS = False
 CHUNK_TRAINING_DATA = False
 CHUNK_DATA = True
 
-
-def euclideanDistance(x, y):
-   return np.linalg.norm(x - y)
-
 # nearest neighbour
 def nearestNeighbor(trainingData, trainingLabels, testSample):
     minDistance = float('inf')

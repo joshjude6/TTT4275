@@ -14,24 +14,25 @@ from timer import Timer # type: ignore
 # Runtime configurations
 PLOT_DATA = True
 SAVE_PLOTS = False
-CHUNK_TRAINING_DATA = False
-CHUNK_DATA = True
 
-def plotSamples(testData, testLabels, predictedLabels, correctIndexes, failedIndexes, N) -> None:
-    correctSamples = np.random.choice(correctIndexes, min(N//2, len(correctIndexes)), replace=False)
-    failedSamples = np.random.choice(failedIndexes, min(N//2, len(failedIndexes)), replace=False)
+ENABLE_CHUNKING = True
+samples_per_chunk = 1000
+
+def plot_samples(test_data, test_labels, predicted_labels, correct_indeces, failed_indeces, N) -> None:
+    correct_samples = np.random.choice(correct_indeces, min(N//2, len(correct_indeces)), replace=False)
+    failed_samples = np.random.choice(failed_indeces, min(N//2, len(failed_indeces)), replace=False)
 
     plt.figure(figsize=(12, 6))
-    for i, j in enumerate(correctSamples):
+    for i, j in enumerate(correct_samples):
         plt.subplot(2, N//2, i + 1)
-        plt.imshow(testData[j].reshape(28, 28), cmap='rocket')
-        plt.title(f'Predicted label: {predictedLabels[j]}\n Actual label: {testLabels[j]}', fontsize=10)
+        plt.imshow(test_data[j].reshape(28, 28), cmap='rocket')
+        plt.title(f'Predicted label: {predicted_labels[j]}\n Actual label: {test_labels[j]}', fontsize=10)
         plt.axis('off')
 
-    for i, j in enumerate(failedSamples):
+    for i, j in enumerate(failed_samples):
         plt.subplot(2, N//2, N//2 + i + 1)
-        plt.imshow(testData[j].reshape(28, 28), cmap='rocket')
-        plt.title(f'Predicted label: {predictedLabels[j]}\n Actual label: {testLabels[j]}', fontsize=10)
+        plt.imshow(test_data[j].reshape(28, 28), cmap='rocket')
+        plt.title(f'Predicted label: {predicted_labels[j]}\n Actual label: {test_labels[j]}', fontsize=10)
         plt.axis('off')
 
     plt.tight_layout()
@@ -58,10 +59,10 @@ if __name__ == '__main__':
   timer.stop()
 
   # Split data into chunks
-  if CHUNK_DATA:
+  if ENABLE_CHUNKING:
     timer.rename('Data chunking')
     timer.start()
-    samples_per_chunk = 1000
+
     number_of_training_chunks = training_data.shape[0] // samples_per_chunk  # Integer division for number of chunks
     number_of_label_chunks = training_labels.shape[0] // samples_per_chunk
     training_data = np.array(np.array_split(training_data, number_of_training_chunks, axis=0))

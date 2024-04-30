@@ -1,13 +1,15 @@
+import numpy as np
+
 from sklearn.cluster import KMeans
 
 # selveste clusteringen !! wow
-def KMeansClustering(trainingData, trainingLabels, nClusters):
-    kmeans = KMeans(n_clusters=nClusters, random_state=0) 
-    clusterTemplates = {}
+def get_means_clustering_templates(training_data, training_labels, num_clusters):
+    means = KMeans(n_clusters=num_clusters, random_state=0) 
+    templates = {}
 
-    for classLabel in np.unique(trainingLabels): 
-        classData = trainingData[trainingLabels == classLabel].reshape(-1, (28*28)) 
-        kmeans.fit(classData)
-        clusterTemplates[classLabel] = kmeans.cluster_centers_
-         
-    return clusterTemplates
+    for class_label in np.unique(training_labels): 
+        class_data = training_data[training_labels == class_label].reshape(-1, (28*28)) 
+        means.fit(class_data)
+        templates[class_label] = means.cluster_centers_
+
+    return templates

@@ -1,5 +1,4 @@
 from linalg import euclideanDistance
-from timer import Timer # type: ignore
 
 def evaluate_nearest_neighbour(training_data, training_labels, test_data, test_labels):
     num_correct_predictions = 0

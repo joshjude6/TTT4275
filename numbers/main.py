@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from algos.clustering import KMeansClustering
+from algos.clustering import get_means_clustering_templates
 from algos.k_nearest_neighbour import KNN, knnForKmeans, evaluateKnnForKmeans, evaluateKNN, testKNN
 from algos.nearest_neighbour import evaluate_nearest_neighbour, get_nearest_neighbour
 from collections import Counter
